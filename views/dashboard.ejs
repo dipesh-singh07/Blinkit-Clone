@@ -1,0 +1,73 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="margin: 2rem auto;">
+    <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 2rem; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 1.75rem; font-weight: 800;">Hello, <%= user.name %>! 👋</h1>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+                    <strong>Email:</strong> <%= user.email %> | 
+                    <strong>Role:</strong> <span class="role-pill"><%= user.role %></span>
+                </p>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+                    <strong>Default Address:</strong> <%= user.address || 'Not specified' %>
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem;">
+                <a href="/products" class="btn-primary" style="width: auto; padding: 0.6rem 1.25rem;">Shop Groceries</a>
+                <a href="/orders" class="btn-add" style="font-size: 0.95rem; padding: 0.6rem 1.25rem;">My Orders</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders Section -->
+    <div class="section-header">
+        <h2 class="section-title">Recent Orders</h2>
+        <a href="/orders" class="view-all-link">View All Orders →</a>
+    </div>
+
+    <% if (orders && orders.length > 0) { %>
+        <div class="orders-list">
+            <% orders.forEach(order => { %>
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <strong>Order #<%= order._id.toString().slice(-6).toUpperCase() %></strong>
+                            <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 0.75rem;">
+                                <%= new Date(order.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                            </span>
+                        </div>
+                        <div>
+                            <span class="status-badge status-<%= order.status %>">
+                                <%= order.status.replace(/_/g, ' ') %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <p style="font-size: 0.9rem; color: var(--text-muted);">
+                                Items: <strong><%= order.items.map(i => `${i.name} (x${i.quantity})`).join(', ') %></strong>
+                            </p>
+                            <p style="font-size: 0.85rem; color: var(--text-light); margin-top: 0.25rem;">
+                                Address: <%= order.address %>
+                            </p>
+                        </div>
+                        <div style="font-size: 1.15rem; font-weight: 800;">
+                            ₹<%= order.totalAmount %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div style="background: #ffffff; padding: 3rem; text-align: center; border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">You haven't placed any orders yet.</p>
+            <a href="/products" class="btn-primary" style="width: auto; display: inline-block;">Start Shopping</a>
+        </div>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,35 @@
+{
+  "name": "blinkit-backend",
+  "version": "1.0.0",
+  "description": "A beginner-friendly full-stack quick commerce application inspired by Blinkit for learning backend development.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node utils/seed.js"
+  },
+  "keywords": [
+    "express",
+    "nodejs",
+    "mongodb",
+    "mongoose",
+    "ejs",
+    "jwt",
+    "bcrypt",
+    "blinkit"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
+  }
+}

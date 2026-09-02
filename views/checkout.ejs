@@ -1,0 +1,95 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="margin: 2rem auto;">
+    <h1 class="section-title" style="margin-bottom: 1.5rem;">Checkout & Place Order</h1>
+
+    <div class="cart-layout">
+        <!-- Left: Delivery Address & Order Review -->
+        <div class="cart-items-card">
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1.25rem;">1. Delivery Address</h2>
+            
+            <form id="checkout-form">
+                <div class="form-group">
+                    <label class="form-label" for="deliveryAddress">Delivery Location</label>
+                    <textarea 
+                        id="deliveryAddress" 
+                        name="deliveryAddress" 
+                        class="form-control" 
+                        rows="3" 
+                        required
+                    ><%= user ? user.address : '' %></textarea>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.35rem;">
+                        Our delivery partner will reach this exact location in under 10 minutes.
+                    </small>
+                </div>
+
+                <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                    <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem;">2. Order Items (<%= cart.items.length %>)</h2>
+                    
+                    <% cart.items.forEach(item => { %>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px dashed var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <img src="<%= item.product.image %>" style="width: 45px; height: 45px; object-fit: contain; border-radius: 4px; background: #fafafa;">
+                                <div>
+                                    <div style="font-weight: 700; font-size: 0.9rem;"><%= item.product.name %></div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted);">Qty: <%= item.quantity %> × ₹<%= item.price %></div>
+                                </div>
+                            </div>
+                            <div style="font-weight: 800;">
+                                ₹<%= item.price * item.quantity %>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+
+                <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                    <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">3. Payment Method</h2>
+                    <div style="padding: 1rem; background: var(--bg-subtle); border-radius: var(--border-radius-md); display: flex; align-items: center; gap: 0.75rem;">
+                        <input type="radio" id="cod" name="paymentMethod" checked>
+                        <label for="cod" style="font-weight: 700; font-size: 0.95rem; cursor: pointer;">
+                            💵 Cash / UPI on Delivery (Standard Learning Mode)
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" id="place-order-btn" class="btn-primary" style="margin-top: 2rem; font-size: 1.1rem; padding: 1rem;">
+                    ⚡ Place Order (₹<%= cart.totalPrice + 2 %>)
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Price Details Summary -->
+        <div>
+            <div class="bill-summary-card">
+                <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 1.25rem;">Order Summary</h3>
+                
+                <div class="bill-row">
+                    <span>Items Total</span>
+                    <span>₹<%= cart.totalPrice %></span>
+                </div>
+                
+                <div class="bill-row">
+                    <span>Delivery Charge</span>
+                    <span style="color: var(--primary-color); font-weight: 700;">FREE</span>
+                </div>
+
+                <div class="bill-row">
+                    <span>Handling Fee</span>
+                    <span>₹2</span>
+                </div>
+
+                <div class="bill-row bill-total">
+                    <span>To Pay</span>
+                    <span>₹<%= cart.totalPrice + 2 %></span>
+                </div>
+
+                <div style="margin-top: 1.5rem; padding: 0.75rem; background: #e0f2fe; color: #0369a1; border-radius: var(--border-radius-sm); font-size: 0.8rem; text-align: center;">
+                    🔒 100% Safe and Contactless Delivery
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

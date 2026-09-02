@@ -1,0 +1,94 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="margin: 2rem auto;">
+    <!-- Page Header & Active Filters -->
+    <div class="section-header">
+        <div>
+            <h1 class="section-title">
+                <% if (typeof searchQuery !== 'undefined' && searchQuery) { %>
+                    Search Results for "<%= searchQuery %>"
+                <% } else { %>
+                    All Grocery Items
+                <% } %>
+            </h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+                Found <%= typeof products !== 'undefined' && products ? products.length : 0 %> items available for instant delivery.
+            </p>
+        </div>
+
+        <% if ((typeof selectedCategory !== 'undefined' && selectedCategory) || (typeof searchQuery !== 'undefined' && searchQuery)) { %>
+            <a href="/products" class="btn-add" style="font-size: 0.85rem;">Clear Filters ✕</a>
+        <% } %>
+    </div>
+
+    <!-- Category Pill Filter Bar -->
+    <div style="display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <a 
+            href="/products" 
+            class="category-card" 
+            style="flex: 0 0 auto; padding: 0.5rem 1rem; border-radius: 999px; <%= (!selectedCategory || selectedCategory === '') ? 'background: var(--primary-color); color: #fff; border-color: var(--primary-color);' : '' %>"
+        >
+            All Items
+        </a>
+        <% if (typeof categories !== 'undefined' && categories) { %>
+            <% categories.forEach(cat => { %>
+                <a 
+                    href="/products?category=<%= cat._id %>" 
+                    class="category-card" 
+                    style="flex: 0 0 auto; padding: 0.5rem 1rem; border-radius: 999px; <%= (typeof selectedCategory !== 'undefined' && selectedCategory && selectedCategory.toString() === cat._id.toString()) ? 'background: var(--primary-color); color: #fff; border-color: var(--primary-color);' : '' %>"
+                >
+                    <%= cat.name %>
+                </a>
+            <% }) %>
+        <% } %>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid">
+        <% if (typeof products !== 'undefined' && products && products.length > 0) { %>
+            <% products.forEach(product => { %>
+                <div class="product-card">
+                    <span class="product-badge">10 MINS</span>
+                    
+                    <a href="/products/<%= product._id %>" class="product-image-wrap">
+                        <img 
+                            src="<%= product.image %>" 
+                            alt="<%= product.name %>"
+                            onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=60'"
+                        >
+                    </a>
+
+                    <div class="product-brand"><%= product.brand || 'Blinkit Fresh' %></div>
+                    
+                    <a href="/products/<%= product._id %>" class="product-name">
+                        <%= product.name %>
+                    </a>
+                    
+                    <div class="product-unit"><%= product.unit || '1 unit' %></div>
+
+                    <div class="product-card-footer">
+                        <div class="product-price">₹<%= product.price %></div>
+                        <% if (product.isAvailable && product.quantity > 0) { %>
+                            <button 
+                                class="btn-add" 
+                                onclick="addToCart('<%= product._id %>', 1)"
+                            >
+                                ADD
+                            </button>
+                        <% } else { %>
+                            <span style="color: #ef4444; font-size: 0.8rem; font-weight: 700;">Out of Stock</span>
+                        <% } %>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div style="text-align: center; grid-column: 1 / -1; padding: 3rem; background: #fff; border-radius: var(--border-radius-md); border: 1px solid var(--border-color);">
+                <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1rem;">No items matched your criteria.</p>
+                <a href="/products" class="btn-primary" style="width: auto; display: inline-block;">View All Products</a>
+            </div>
+        <% } %>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

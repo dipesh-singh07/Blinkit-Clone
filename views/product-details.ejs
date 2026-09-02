@@ -1,0 +1,95 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="margin: 2.5rem auto;">
+    <!-- Main Product Detail Card -->
+    <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 2.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 3rem;">
+        
+        <!-- Left: Image Box -->
+        <div style="background: #fafafa; border-radius: var(--border-radius-md); padding: 2rem; display: flex; align-items: center; justify-content: center; height: 380px;">
+            <img 
+                src="<%= product.image %>" 
+                alt="<%= product.name %>" 
+                style="max-height: 100%; max-width: 100%; object-fit: contain;"
+                onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=60'"
+            >
+        </div>
+
+        <!-- Right: Details & Add to Cart -->
+        <div style="display: flex; flex-direction: column; justify-content: center;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px;">
+                <%= product.brand || 'Blinkit' %> • <%= product.category ? product.category.name : 'Groceries' %>
+            </span>
+
+            <h1 style="font-size: 2rem; font-weight: 800; margin: 0.5rem 0 0.75rem 0; line-height: 1.25;">
+                <%= product.name %>
+            </h1>
+
+            <div style="display: inline-block; background: #f1f3f9; padding: 0.25rem 0.75rem; border-radius: var(--border-radius-sm); font-size: 0.9rem; font-weight: 600; width: fit-content; margin-bottom: 1.5rem;">
+                Unit: <%= product.unit %>
+            </div>
+
+            <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 1.5rem;">
+                <span style="font-size: 2.25rem; font-weight: 900; color: var(--text-main);">
+                    ₹<%= product.price %>
+                </span>
+                <span style="color: var(--text-light); font-size: 0.9rem;">(Inclusive of all taxes)</span>
+            </div>
+
+            <!-- Description -->
+            <div style="margin-bottom: 2rem; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+                <strong style="color: var(--text-main); display: block; margin-bottom: 0.35rem;">Product Details:</strong>
+                <%= product.description || 'Fresh quality product directly packed and sealed for instant fast doorstep delivery.' %>
+            </div>
+
+            <!-- Action Button -->
+            <div>
+                <% if (product.isAvailable && product.quantity > 0) { %>
+                    <button 
+                        class="btn-primary" 
+                        style="width: 220px; font-size: 1.1rem; padding: 1rem;"
+                        onclick="addToCart('<%= product._id %>', 1)"
+                    >
+                        ⚡ Add to Cart
+                    </button>
+                <% } else { %>
+                    <button class="btn-primary" style="background: #9ca3af; cursor: not-allowed; width: 220px;" disabled>
+                        Out of Stock
+                    </button>
+                <% } %>
+            </div>
+
+            <!-- Delivery Guarantee Box -->
+            <div style="margin-top: 2rem; padding: 1rem; background: var(--primary-light); border-radius: var(--border-radius-md); font-size: 0.85rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 1.5rem;">⏱️</span>
+                <span><strong>Superfast Delivery:</strong> Delivered at your doorstep within 10 to 15 minutes!</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    <% if (relatedProducts && relatedProducts.length > 0) { %>
+        <div class="section-header">
+            <h2 class="section-title">Similar Items in this Category</h2>
+        </div>
+        <div class="products-grid">
+            <% relatedProducts.forEach(rel => { %>
+                <div class="product-card">
+                    <span class="product-badge">10 MINS</span>
+                    <a href="/products/<%= rel._id %>" class="product-image-wrap">
+                        <img src="<%= rel.image %>" alt="<%= rel.name %>">
+                    </a>
+                    <div class="product-brand"><%= rel.brand %></div>
+                    <a href="/products/<%= rel._id %>" class="product-name"><%= rel.name %></a>
+                    <div class="product-unit"><%= rel.unit %></div>
+                    <div class="product-card-footer">
+                        <div class="product-price">₹<%= rel.price %></div>
+                        <button class="btn-add" onclick="addToCart('<%= rel._id %>', 1)">ADD</button>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

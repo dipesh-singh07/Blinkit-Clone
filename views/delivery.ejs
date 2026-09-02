@@ -1,0 +1,110 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="margin: 2rem auto;">
+    <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 2rem; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 1.75rem; font-weight: 800;">🛵 Delivery Rider Dashboard</h1>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 0.25rem;">
+                    Partner: <strong><%= user.name %></strong> (<%= user.email %>)
+                </p>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
+                    Status: <span class="role-pill" style="background: #dcfce7; color: #15803d;">Active & Online</span>
+                </p>
+            </div>
+            <div>
+                <span class="status-badge status-out_for_delivery" style="font-size: 0.95rem; padding: 0.5rem 1rem;">
+                    <%= orders.length %> Pending Deliveries
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Deliveries Queue -->
+    <div class="section-header">
+        <h2 class="section-title">Assigned / Available Delivery Orders</h2>
+    </div>
+
+    <% if (orders && orders.length > 0) { %>
+        <div class="orders-list">
+            <% orders.forEach(order => { %>
+                <div class="order-card" style="border-left: 5px solid var(--primary-color);">
+                    <div class="order-header">
+                        <div>
+                            <span style="font-weight: 800; font-size: 1.1rem;">
+                                Order #<%= order._id.toString().slice(-6).toUpperCase() %>
+                            </span>
+                            <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 0.75rem;">
+                                Placed: <%= new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) %>
+                            </span>
+                        </div>
+                        <span class="status-badge status-<%= order.status %>">
+                            <%= order.status.replace(/_/g, ' ') %>
+                        </span>
+                    </div>
+
+                    <!-- Customer & Location Info -->
+                    <div style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--border-radius-md); margin-bottom: 1rem;">
+                        <p style="font-size: 0.95rem; margin-bottom: 0.35rem;">
+                            👤 <strong>Customer:</strong> <%= order.user ? order.user.name : 'Unknown' %> 
+                            (<%= order.user ? order.user.email : '' %>)
+                        </p>
+                        <p style="font-size: 0.95rem; color: #b45309; font-weight: 700;">
+                            📍 <strong>Delivery Address:</strong> <%= order.address %>
+                        </p>
+                    </div>
+
+                    <!-- Items Summary -->
+                    <div style="margin-bottom: 1rem; font-size: 0.9rem;">
+                        <strong>Groceries to Deliver:</strong>
+                        <%= order.items.map(i => `${i.name} (x${i.quantity})`).join(', ') %>
+                    </div>
+
+                    <!-- Action Buttons for Rider -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                        <div style="font-size: 1.15rem; font-weight: 800;">
+                            Collect Amount: ₹<%= order.totalAmount %> (<%= order.paymentStatus %>)
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem;">
+                            <% if (order.status !== 'out_for_delivery' && order.status !== 'delivered') { %>
+                                <button 
+                                    onclick="updateDeliveryStatus('<%= order._id %>', 'out_for_delivery')" 
+                                    class="btn-primary" 
+                                    style="width: auto; padding: 0.5rem 1rem; font-size: 0.9rem; background: #eab308; color: #000;"
+                                >
+                                    🛵 Start Delivery (Out For Delivery)
+                                </button>
+                            <% } %>
+
+                            <% if (order.status !== 'delivered') { %>
+                                <button 
+                                    onclick="updateDeliveryStatus('<%= order._id %>', 'delivered')" 
+                                    class="btn-primary" 
+                                    style="width: auto; padding: 0.5rem 1.25rem; font-size: 0.9rem;"
+                                >
+                                    ✅ Mark as Delivered & Paid
+                                </button>
+                            <% } else { %>
+                                <span style="color: var(--primary-color); font-weight: 800;">
+                                    ✓ Delivered Successfully
+                                </span>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 4rem 2rem; text-align: center; max-width: 550px; margin: 3rem auto;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🛵</div>
+            <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">All Caught Up!</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem;">
+                No pending deliveries waiting right now. Stay online for new orders!
+            </p>
+        </div>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,51 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container">
+    <div class="auth-wrapper">
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Log in to manage your orders, cart, and profile.</p>
+
+        <form id="login-form">
+            <div class="form-group">
+                <label class="form-label" for="email">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-control" 
+                    placeholder="Enter your registered email" 
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-control" 
+                    placeholder="Enter your password" 
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn-primary">Log In</button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account? <a href="/register">Register here</a>
+        </div>
+
+        <!-- Quick Demo Credentials Box for Easy Learning & Testing -->
+        <div style="margin-top: 1.5rem; padding: 1rem; background-color: var(--bg-subtle); border-radius: var(--border-radius-md); font-size: 0.82rem; border: 1px dashed var(--border-color);">
+            <strong style="display: block; margin-bottom: 0.5rem; color: var(--text-main);">⚡ Quick Demo Accounts (Seed Data):</strong>
+            <p style="margin-bottom: 0.25rem;"><strong>Customer:</strong> <code>customer@blinkit.com</code> (pw: <code>password123</code>)</p>
+            <p style="margin-bottom: 0.25rem;"><strong>Admin:</strong> <code>admin@blinkit.com</code> (pw: <code>password123</code>)</p>
+            <p><strong>Delivery Rider:</strong> <code>delivery@blinkit.com</code> (pw: <code>password123</code>)</p>
+        </div>
+    </div>
+</main>
+
+<%- include('partials/footer') %>

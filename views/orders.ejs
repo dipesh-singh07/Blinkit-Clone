@@ -1,0 +1,99 @@
+<%- include('partials/header') %>
+<%- include('partials/navbar') %>
+
+<main class="container" style="margin: 2rem auto;">
+    <div class="section-header">
+        <h1 class="section-title">My Orders History</h1>
+        <a href="/products" class="btn-add" style="font-size: 0.9rem;">+ Order More Groceries</a>
+    </div>
+
+    <% if (orders && orders.length > 0) { %>
+        <div class="orders-list">
+            <% orders.forEach(order => { %>
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <span style="font-weight: 800; font-size: 1.05rem;">
+                                Order #<%= order._id.toString().slice(-6).toUpperCase() %>
+                            </span>
+                            <span style="color: var(--text-muted); font-size: 0.85rem; margin-left: 0.75rem;">
+                                Placed on <%= new Date(order.createdAt).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                            </span>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <span class="status-badge status-<%= order.status %>">
+                                <%= order.status.replace(/_/g, ' ') %>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Ordered Items Preview -->
+                    <div style="margin: 1rem 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <% order.items.forEach(item => { %>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <img 
+                                        src="<%= item.image %>" 
+                                        style="width: 40px; height: 40px; object-fit: contain; border-radius: 4px; background: #fafafa;"
+                                        onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=500&auto=format&fit=crop&q=60'"
+                                    >
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.9rem;"><%= item.name %></div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);"><%= item.unit %> • Qty: <%= item.quantity %></div>
+                                    </div>
+                                </div>
+                                <div style="font-weight: 700; font-size: 0.95rem;">
+                                    ₹<%= item.price * item.quantity %>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+
+                    <!-- Order Footer Info & Actions -->
+                    <div style="border-top: 1px dashed var(--border-color); padding-top: 1rem; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">
+                                📍 <strong>Delivery Address:</strong> <%= order.address %>
+                            </div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                💳 <strong>Payment Status:</strong> <span style="text-transform: capitalize; font-weight: 700;"><%= order.paymentStatus %></span>
+                                <% if (order.deliveryUser) { %>
+                                    | 🛵 <strong>Rider:</strong> <%= order.deliveryUser.name %>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="font-size: 1.25rem; font-weight: 900; color: var(--text-main);">
+                                ₹<%= order.totalAmount %>
+                            </div>
+
+                            <% if (!['delivered', 'cancelled'].includes(order.status)) { %>
+                                <button 
+                                    onclick="cancelOrder('<%= order._id %>')" 
+                                    style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 0.4rem 0.85rem; border-radius: var(--border-radius-sm); font-size: 0.85rem; font-weight: 700; cursor: pointer;"
+                                >
+                                    Cancel Order
+                                </button>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } else { %>
+        <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--border-radius-lg); padding: 4rem 2rem; text-align: center; max-width: 550px; margin: 3rem auto;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📦</div>
+            <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.5rem;">No Orders Found</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 2rem;">
+                You haven't placed any grocery orders yet.
+            </p>
+            <a href="/products" class="btn-primary" style="width: auto; padding: 0.85rem 2rem; display: inline-block;">
+                Browse Store
+            </a>
+        </div>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

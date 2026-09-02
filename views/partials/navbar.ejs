@@ -1,0 +1,60 @@
+<header class="navbar">
+    <div class="container nav-container">
+        <!-- Logo & Location -->
+        <div class="nav-brand">
+            <a href="/" class="logo-badge">
+                blink<span>it</span>
+            </a>
+            <div class="delivery-info">
+                <span class="delivery-time">Delivery in 10 minutes</span>
+                <span class="delivery-loc">
+                    <%= user ? (user.address || 'Powai, Mumbai, India') : 'Select Location' %>
+                </span>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="nav-search">
+            <form action="/products" method="GET" class="search-box">
+                <span class="search-icon">🔍</span>
+                <input 
+                    type="text" 
+                    name="search" 
+                    placeholder="Search 'milk', 'bread', 'chips'..." 
+                    value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>"
+                    autocomplete="off"
+                >
+            </form>
+        </div>
+
+        <!-- Navigation Actions -->
+        <div class="nav-actions">
+            <% if (user) { %>
+                <!-- Logged In User Links -->
+                <% if (user.role === 'admin') { %>
+                    <a href="/admin" class="nav-link">
+                        <span class="role-pill">Admin</span> Dashboard
+                    </a>
+                <% } else if (user.role === 'delivery') { %>
+                    <a href="/delivery" class="nav-link">
+                        <span class="role-pill">Rider</span> Dashboard
+                    </a>
+                <% } %>
+
+                <a href="/dashboard" class="nav-link">Account (<%= user.name.split(' ')[0] %>)</a>
+                <a href="/orders" class="nav-link">My Orders</a>
+                <a href="/logout" class="nav-link" style="color: #ef4444;">Logout</a>
+            <% } else { %>
+                <!-- Guest Links -->
+                <a href="/login" class="nav-link">Login</a>
+                <a href="/register" class="nav-link" style="color: var(--primary-color);">Register</a>
+            <% } %>
+
+            <!-- Cart Button -->
+            <a href="/cart" class="cart-btn">
+                <span>🛒</span>
+                <span class="cart-badge"><%= typeof cartCount !== 'undefined' ? cartCount : 0 %> items</span>
+            </a>
+        </div>
+    </div>
+</header>
