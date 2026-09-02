@@ -43,33 +43,39 @@ app.use(express.static("public"));
 app.use(optionalAuth);
 
 // =========================================================================
-// 3. DATABASE CONNECTION
-// =========================================================================
-connectDB();
-
-// =========================================================================
-// 4. MOUNT ROUTERS
+// 3. MOUNT ROUTERS & ERROR HANDLER
 // =========================================================================
 app.use("/", authRoutes);
 app.use("/", productRoutes);
 app.use("/", cartRoutes);
 app.use("/", orderRoutes);
 
-// =========================================================================
-// 5. ERROR HANDLING MIDDLEWARE
-// =========================================================================
+// Centralized error handling middleware
 app.use(errorHandler);
 
 // =========================================================================
-// 6. START SERVER
+// 4. CONNECT DATABASE & START SERVER
 // =========================================================================
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`\n=========================================`);
-    console.log(` Blinkit Server is running on port ${PORT}`);
-    console.log(` Local URL: http://localhost:${PORT}`);
-    console.log(`=========================================\n`);
-});
+const startServer = async () => {
+    try {
+        // Connect to MongoDB Atlas / MongoDB first
+        await connectDB();
+
+        // Start listening for incoming requests once DB connection is established
+        app.listen(PORT, () => {
+            console.log(`\n=========================================`);
+            console.log(` Blinkit Server is running on port ${PORT}`);
+            console.log(` Local URL: http://localhost:${PORT}`);
+            console.log(`=========================================\n`);
+        });
+    } catch (error) {
+        console.error("❌ Failed to start server due to MongoDB connection error.");
+        process.exit(1);
+    }
+};
+
+startServer();
 
 module.exports = app;

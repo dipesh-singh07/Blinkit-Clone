@@ -1,45 +1,39 @@
 const mongoose = require("mongoose");
 
-// ==========================================
-// DATABASE CONNECTION (MongoDB / Atlas / Local Fallback)
-// ==========================================
+// =========================================================================
+// DATABASE CONNECTION (MongoDB / MongoDB Atlas)
+// =========================================================================
 const connectDB = async () => {
-    const primaryUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/blinkit";
-    const localUri = "mongodb://127.0.0.1:27017/blinkit";
-
     try {
-        // Attempt connecting to configured MONGO_URI
-        await mongoose.connect(primaryUri, {
-            serverSelectionTimeoutMS: 4000
+        const mongoURI = process.env.MONGO_URI;
+
+        if (!mongoURI) {
+            throw new Error(
+                "MONGO_URI is not defined. Please set MONGO_URI in your .env file or Render Environment Variables."
+            );
+        }
+
+        console.log("⏳ Connecting to MongoDB...");
+
+        const conn = await mongoose.connect(mongoURI, {
+            serverSelectionTimeoutMS: 8000 // 8-second timeout for server selection
         });
 
         console.log("=========================================");
         console.log(" Connected to MongoDB successfully!");
-        console.log(` URI: ${primaryUri.replace(/:([^:@]+)@/, ":****@")}`);
+        console.log(` Host: ${conn.connection.host}`);
+        console.log(` Database: ${conn.connection.name}`);
         console.log("=========================================");
-    } catch (primaryError) {
-        console.error("⚠️  Primary MongoDB connection failed:", primaryError.message);
-
-        // If primary was an Atlas or external URI that failed, fallback to local MongoDB
-        if (primaryUri !== localUri) {
-            console.log("🔄 Attempting fallback connection to Local MongoDB (mongodb://127.0.0.1:27017/blinkit)...");
-            try {
-                await mongoose.connect(localUri, {
-                    serverSelectionTimeoutMS: 3000
-                });
-                console.log("=========================================");
-                console.log(" Connected to Local MongoDB successfully!");
-                console.log(` URI: ${localUri}`);
-                console.log("=========================================");
-                return;
-            } catch (fallbackError) {
-                console.error(" Local MongoDB fallback also failed:", fallbackError.message);
-            }
-        }
-
-        console.warn("\n📌 ATLAS IP WHITELIST TIP:");
-        console.warn("If using MongoDB Atlas, make sure your IP is whitelisted in your Atlas Dashboard:");
-        console.warn("Atlas Dashboard -> Network Access -> Add IP Address -> Allow Access From Anywhere (0.0.0.0/0)\n");
+    } catch (error) {
+        console.error("=========================================");
+        console.error(" MongoDB connection error:", error.message);
+        console.error("=========================================");
+        console.error("📌 MongoDB Atlas Troubleshooting:");
+        console.error("1. Ensure 'MONGO_URI' is added in your Render Dashboard -> Environment Variables.");
+        console.error("2. Ensure MongoDB Atlas Network Access has '0.0.0.0/0' (Allow Access from Anywhere) enabled.");
+        console.error("3. Ensure your database username & password in the connection string are correct.");
+        console.error("=========================================");
+        throw error;
     }
 };
 
