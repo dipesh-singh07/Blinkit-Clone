@@ -8,12 +8,18 @@ const Category = require("../models/Category");
 const Product = require("../models/Product");
 
 // Connect to MongoDB
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/blinkit";
+const primaryUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/blinkit";
+const localUri = "mongodb://127.0.0.1:27017/blinkit";
 
 async function seedDatabase() {
     try {
         console.log("Connecting to MongoDB for seeding...");
-        await mongoose.connect(MONGO_URI);
+        try {
+            await mongoose.connect(primaryUri, { serverSelectionTimeoutMS: 4000 });
+        } catch (err) {
+            console.log("Primary connection failed, falling back to local MongoDB...");
+            await mongoose.connect(localUri, { serverSelectionTimeoutMS: 3000 });
+        }
         console.log("Connected to MongoDB successfully!");
 
         // 1. Clear existing sample data

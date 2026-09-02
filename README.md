@@ -69,53 +69,71 @@ This project simulates the core business logic of a quick-commerce app (like Bli
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure (MVC Architecture)
 
 ```
-blinkit-backend/
+Blinkit-Clone/
 │
-├── middleware/
-│   └── auth.js             # JWT verification & role authorization
+├── config/
+│   └── db.js                 # MongoDB connection logic (Mongoose)
 │
 ├── models/
-│   ├── User.js             # Customer, Admin, and Rider schema
-│   ├── Category.js         # Grocery categories
-│   ├── Product.js          # Products referencing Category ObjectId
-│   ├── Cart.js             # User carts with calculateTotal helper
-│   └── Order.js            # Orders with lifecycle status & address
+│   ├── User.js               # Customer, Admin, and Rider schema
+│   ├── Category.js           # Grocery categories schema
+│   ├── Product.js            # Products referencing Category ObjectId
+│   ├── Cart.js               # User shopping carts schema & calculation
+│   └── Order.js              # Orders with lifecycle status & address
+│
+├── middleware/
+│   ├── auth.js               # JWT verification & optional auth middleware
+│   ├── authorizeRoles.js     # Role-based access control middleware
+│   └── errorHandler.js       # Centralized error handler
+│
+├── controllers/
+│   ├── authController.js     # Registration, login, logout, profile
+│   ├── productController.js  # Catalog, category, search, product CRUD
+│   ├── cartController.js     # Cart items add/update/delete/clear
+│   └── orderController.js    # Order checkout, admin & delivery dashboards
+│
+├── routers/
+│   ├── authRoutes.js         # Routes for auth views & APIs
+│   ├── productRoutes.js      # Routes for products & categories
+│   ├── cartRoutes.js         # Routes for shopping cart
+│   └── orderRoutes.js        # Routes for orders, admin & delivery
 │
 ├── utils/
-│   └── seed.js             # Preloaded sample groceries & demo users
+│   ├── cartHelper.js         # Cart count helper function
+│   └── seed.js               # Sample groceries & demo users seeder
 │
 ├── public/
 │   ├── css/
-│   │   └── style.css       # Clean, modern Blinkit theme stylesheet
+│   │   └── style.css         # Blinkit theme stylesheet
 │   ├── js/
-│   │   └── script.js       # Client-side fetch() API handler & toasts
+│   │   └── script.js         # Client-side fetch() handler & toasts
 │   └── images/
 │
 ├── views/
 │   ├── partials/
-│   │   ├── header.ejs      # HTML <head> and meta tags
-│   │   ├── navbar.ejs      # Blinkit header, search, cart counter
-│   │   └── footer.ejs      # Footer links and script tag
-│   ├── home.ejs            # Homepage with hero, categories & products
-│   ├── register.ejs        # User signup form
-│   ├── login.ejs           # User signin form
-│   ├── dashboard.ejs       # Customer profile & fast actions
-│   ├── products.ejs        # Catalog with search & category filters
-│   ├── product-details.ejs # Single item page with details
-│   ├── cart.ejs            # Interactive cart with quantity controls
-│   ├── checkout.ejs        # Address & order placement
-│   ├── orders.ejs          # Customer order history & tracking
-│   ├── admin.ejs           # Admin control panel
-│   └── delivery.ejs        # Delivery partner dashboard
+│   │   ├── header.ejs        # HTML <head> and meta tags
+│   │   ├── navbar.ejs        # Blinkit header, search, cart counter
+│   │   └── footer.ejs        # Footer links and script tag
+│   ├── home.ejs              # Homepage with hero, categories & products
+│   ├── register.ejs          # User signup form
+│   ├── login.ejs             # User signin form
+│   ├── dashboard.ejs         # Customer profile & quick actions
+│   ├── products.ejs          # Catalog with search & category filters
+│   ├── product-details.ejs   # Single item page with details
+│   ├── cart.ejs              # Interactive cart with quantity controls
+│   ├── checkout.ejs          # Address & order placement
+│   ├── orders.ejs            # Customer order history & tracking
+│   ├── admin.ejs             # Admin control panel
+│   └── delivery.ejs          # Delivery partner dashboard
 │
-├── .env                    # Environment variables (PORT, MONGO_URI, JWT_SECRET)
+├── .env                      # Environment variables (PORT, MONGO_URI, JWT_SECRET)
 ├── .gitignore
 ├── package.json
 ├── README.md
-└── server.js               # Structured 10-section Express server
+└── server.js                 # Minimal server initialization & route mounting
 ```
 
 ---
