@@ -4,7 +4,6 @@ const Cart = require("../models/Cart");
 const User = require("../models/User");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
-const { getCartCount } = require("../utils/cartHelper");
 
 // ==========================================
 // ORDER & DASHBOARD CONTROLLER
@@ -15,23 +14,11 @@ const { getCartCount } = require("../utils/cartHelper");
 // ----------------------------------------------------
 const getCheckoutPage = async (req, res) => {
     try {
-        const cart = await Cart.findOne({ user: req.user.userId }).populate("items.product");
         const user = await User.findById(req.user.userId);
-
-        if (!cart || !cart.items || cart.items.filter((i) => i.product).length === 0) {
-            return res.redirect("/cart");
-        }
-
-        const validItems = cart.items.filter((i) => i.product);
-        const cartCount = validItems.reduce((sum, item) => sum + item.quantity, 0);
 
         res.render("checkout", {
             user,
-            cart: {
-                ...cart.toObject(),
-                items: validItems
-            },
-            cartCount,
+            cartCount: 0,
             title: "Checkout - Blinkit"
         });
     } catch (error) {
@@ -49,12 +36,10 @@ const getMyOrdersPage = async (req, res) => {
             .sort({ createdAt: -1 })
             .populate("deliveryUser", "name");
 
-        const cartCount = await getCartCount(req.user.userId);
-
         res.render("orders", {
             user: req.user,
             orders,
-            cartCount,
+            cartCount: 0,
             title: "My Orders - Blinkit"
         });
     } catch (error) {
@@ -70,52 +55,85 @@ const getMyOrdersPage = async (req, res) => {
 };
 
 // ----------------------------------------------------
-// POST /orders - Create / Place Order
+// POST /orders - Create / Place Order from LocalStorage Cart
 // ----------------------------------------------------
 const createOrder = async (req, res) => {
     try {
-        const { address } = req.body;
+        const { items, address } = req.body;
 
-        // 1. Get user's cart populated with product details
-        const cart = await Cart.findOne({ user: req.user.userId }).populate("items.product");
+        // 1. Fetch user's cart from DB if body items not provided
+        let targetItems = items;
+        let cart = await Cart.findOne({ user: req.user.userId }).populate("items.product");
 
-        // 2. Check that cart is not empty
-        if (!cart || !cart.items || cart.items.length === 0) {
+        if (!targetItems || !Array.isArray(targetItems) || targetItems.length === 0) {
+            if (cart && cart.items && cart.items.length > 0) {
+                targetItems = cart.items.map((i) => ({
+                    productId: i.product._id || i.product,
+                    quantity: i.quantity
+                }));
+            }
+        }
+
+        if (!targetItems || !Array.isArray(targetItems) || targetItems.length === 0) {
             return res.status(400).json({
                 success: false,
                 message: "Your cart is empty. Add items before placing an order."
             });
         }
 
-        // 3. Prepare order items snapshot filtering valid products
-        const orderItems = cart.items
-            .filter((item) => item.product)
-            .map((item) => {
-                return {
-                    product: item.product._id,
-                    name: item.product.name,
-                    quantity: item.quantity,
-                    price: item.price,
-                    image: item.product.image || "",
-                    unit: item.product.unit || "1 unit"
-                };
+        // 2. Validate delivery address
+        const user = await User.findById(req.user.userId);
+        const deliveryAddress = (address && address.trim()) || (user && user.address);
+
+        if (!deliveryAddress) {
+            return res.status(400).json({
+                success: false,
+                message: "Delivery address is required."
             });
+        }
+
+        // 3. Process and validate products against MongoDB (prices, availability)
+        const orderItems = [];
+        let itemsTotal = 0;
+
+        for (const item of targetItems) {
+            const productId = item.productId || item.product;
+            if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+                continue;
+            }
+
+            // Fetch authoritative product from MongoDB
+            const product = await Product.findById(productId);
+            if (!product || !product.isAvailable) {
+                continue;
+            }
+
+            const qty = Math.max(1, Number(item.quantity) || 1);
+            const price = product.price; // Use MongoDB price, do not trust client price
+
+            orderItems.push({
+                product: product._id,
+                name: product.name,
+                quantity: qty,
+                price: price,
+                image: product.image || "",
+                unit: product.unit || "1 unit"
+            });
+
+            itemsTotal += price * qty;
+        }
 
         if (orderItems.length === 0) {
             return res.status(400).json({
                 success: false,
-                message: "No valid products in cart to order."
+                message: "No valid products in cart available for order."
             });
         }
 
-        // 4. Calculate total amount
-        const totalAmount = cart.totalPrice;
+        // 4. Calculate total amount (Items Total + ₹2 handling fee)
+        const totalAmount = itemsTotal + 2;
 
-        // 5. Get delivery address (either submitted or user's default)
-        const user = await User.findById(req.user.userId);
-        const deliveryAddress = address || (user && user.address) || "101, Main Road, India";
-
-        // 6. Create Order document
+        // 5. Create Order document in MongoDB
         const newOrder = new Order({
             user: req.user.userId,
             items: orderItems,
@@ -127,12 +145,14 @@ const createOrder = async (req, res) => {
 
         await newOrder.save();
 
-        // 7. Clear the customer's cart
-        cart.items = [];
-        cart.totalPrice = 0;
-        await cart.save();
+        // 6. Clear user cart in MongoDB
+        if (cart) {
+            cart.items = [];
+            cart.totalPrice = 0;
+            await cart.save();
+        }
 
-        // 8. Return created order
+        // 7. Return successful response
         return res.status(201).json({
             success: true,
             message: "Order placed successfully! Delivery partner will be assigned shortly.",
@@ -195,7 +215,6 @@ const getAdminDashboard = async (req, res) => {
             .sort({ createdAt: -1 });
 
         const deliveryUsers = await User.find({ role: "delivery" }).select("name email");
-        const cartCount = await getCartCount(req.user.userId);
 
         res.render("admin", {
             user: req.user,
@@ -203,7 +222,7 @@ const getAdminDashboard = async (req, res) => {
             categories,
             orders,
             deliveryUsers,
-            cartCount,
+            cartCount: 0,
             title: "Admin Dashboard - Blinkit"
         });
     } catch (error) {
@@ -265,12 +284,10 @@ const getDeliveryDashboard = async (req, res) => {
             .populate("user", "name email address")
             .sort({ createdAt: -1 });
 
-        const cartCount = await getCartCount(req.user.userId);
-
         res.render("delivery", {
             user: req.user,
             orders,
-            cartCount,
+            cartCount: 0,
             title: "Delivery Partner Dashboard - Blinkit"
         });
     } catch (error) {

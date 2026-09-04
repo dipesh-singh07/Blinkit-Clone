@@ -629,12 +629,23 @@ button, input, select, textarea {
     padding: 0 0.3rem;
 }
 
+.qty-btn[disabled] {
+    color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .qty-number {
     font-weight: 700;
     font-size: 0.9rem;
     color: var(--primary-color);
     min-width: 20px;
     text-align: center;
+}
+
+.card-qty-control {
+    padding: 0.25rem 0.5rem;
+    height: 32px;
 }
 
 .bill-summary-card {

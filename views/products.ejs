@@ -3,41 +3,49 @@
 
 <main class="container" style="margin: 2rem auto;">
     <!-- Page Header & Active Filters -->
+    <% 
+        let headerTitle = 'All Grocery Items';
+        if (typeof searchQuery !== 'undefined' && searchQuery) {
+            headerTitle = `Search Results for "${searchQuery}"`;
+        } else if (typeof selectedCategory !== 'undefined' && selectedCategory && typeof categories !== 'undefined' && categories) {
+            const selId = selectedCategory._id ? selectedCategory._id.toString() : selectedCategory.toString();
+            const currentCat = categories.find(c => (c._id ? c._id.toString() : c.toString()) === selId);
+            if (currentCat && currentCat.name) {
+                headerTitle = currentCat.name;
+            }
+        }
+        const hasFilters = (typeof selectedCategory !== 'undefined' && selectedCategory) || (typeof searchQuery !== 'undefined' && searchQuery);
+    %>
     <div class="section-header">
         <div>
-            <h1 class="section-title">
-                <% if (typeof searchQuery !== 'undefined' && searchQuery) { %>
-                    Search Results for "<%= searchQuery %>"
-                <% } else { %>
-                    All Grocery Items
-                <% } %>
-            </h1>
+            <h1 class="section-title"><%= headerTitle %></h1>
             <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem;">
                 Found <%= typeof products !== 'undefined' && products ? products.length : 0 %> items available for instant delivery.
             </p>
         </div>
 
-        <% if ((typeof selectedCategory !== 'undefined' && selectedCategory) || (typeof searchQuery !== 'undefined' && searchQuery)) { %>
-            <a href="/products" class="btn-add" style="font-size: 0.85rem;">Clear Filters ✕</a>
+        <% if (hasFilters) { %>
+            <a href="/products" class="btn-add" style="font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem;">Clear Filters ✕</a>
         <% } %>
     </div>
 
     <!-- Category Pill Filter Bar -->
-    <div style="display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 1rem; margin-bottom: 1.5rem;">
-        <a 
-            href="/products" 
-            class="category-card" 
-            style="flex: 0 0 auto; padding: 0.5rem 1rem; border-radius: 999px; <%= (!selectedCategory || selectedCategory === '') ? 'background: var(--primary-color); color: #fff; border-color: var(--primary-color);' : '' %>"
-        >
+    <div style="display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 1rem; margin-bottom: 1.5rem; scrollbar-width: none;">
+        <% 
+            const isAllSelected = !selectedCategory || selectedCategory === '';
+            const allStyle = isAllSelected ? 'background: var(--primary-color); color: #fff; border-color: var(--primary-color);' : 'background: #fff; color: var(--text-main);';
+        %>
+        <a href="/products" style="flex: 0 0 auto; padding: 0.5rem 1.25rem; border-radius: 999px; border: 1px solid var(--border-color); font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: var(--transition); <%= allStyle %>">
             All Items
         </a>
-        <% if (typeof categories !== 'undefined' && categories) { %>
-            <% categories.forEach(cat => { %>
-                <a 
-                    href="/products?category=<%= cat._id %>" 
-                    class="category-card" 
-                    style="flex: 0 0 auto; padding: 0.5rem 1rem; border-radius: 999px; <%= (typeof selectedCategory !== 'undefined' && selectedCategory && selectedCategory.toString() === cat._id.toString()) ? 'background: var(--primary-color); color: #fff; border-color: var(--primary-color);' : '' %>"
-                >
+        <% if (typeof categories !== 'undefined' && categories && categories.length > 0) { %>
+            <% categories.forEach(cat => { 
+                const selStr = (typeof selectedCategory !== 'undefined' && selectedCategory) ? (selectedCategory._id ? selectedCategory._id.toString() : selectedCategory.toString()) : '';
+                const catStr = cat._id ? cat._id.toString() : '';
+                const isSelected = selStr !== '' && selStr === catStr;
+                const pillStyle = isSelected ? 'background: var(--primary-color); color: #fff; border-color: var(--primary-color);' : 'background: #fff; color: var(--text-main);';
+            %>
+                <a href="/products?category=<%= cat._id %>" style="flex: 0 0 auto; padding: 0.5rem 1.25rem; border-radius: 999px; border: 1px solid var(--border-color); font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: var(--transition); <%= pillStyle %>">
                     <%= cat.name %>
                 </a>
             <% }) %>
@@ -69,16 +77,13 @@
 
                     <div class="product-card-footer">
                         <div class="product-price">₹<%= product.price %></div>
-                        <% if (product.isAvailable && product.quantity > 0) { %>
-                            <button 
-                                class="btn-add" 
-                                onclick="addToCart('<%= product._id %>', 1)"
-                            >
-                                ADD
-                            </button>
-                        <% } else { %>
-                            <span style="color: #ef4444; font-size: 0.8rem; font-weight: 700;">Out of Stock</span>
-                        <% } %>
+                        <div class="product-cart-action" data-product-id="<%= product._id %>" data-stock="<%= product.quantity %>">
+                            <% if (product.isAvailable && product.quantity > 0) { %>
+                                <button class="btn-add" onclick="handleAddToCart('<%= product._id %>')">ADD</button>
+                            <% } else { %>
+                                <span style="color: #ef4444; font-size: 0.8rem; font-weight: 700;">Out of Stock</span>
+                            <% } %>
+                        </div>
                     </div>
                 </div>
             <% }) %>

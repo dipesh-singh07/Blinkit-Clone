@@ -12,17 +12,17 @@ const {
 } = require("../controllers/cartController");
 
 // Middlewares
-const { auth } = require("../middleware/auth");
+const { auth, optionalAuth } = require("../middleware/auth");
 
 // ==========================================
 // CART ROUTES
 // ==========================================
 
-// Cart View & API
-router.get("/cart", auth, getCartPage);
-router.get("/api/cart", auth, getCartApi);
+// Cart View & JSON API
+router.get("/cart", optionalAuth, getCartPage);
+router.get("/api/cart", optionalAuth, getCartApi);
 
-// Cart Modifications
+// Cart Mutations (Requires Authentication)
 router.post("/cart/add", auth, addToCart);
 router.put("/cart/update/:productId", auth, updateCartItem);
 router.delete("/cart/remove/:productId", auth, removeFromCart);

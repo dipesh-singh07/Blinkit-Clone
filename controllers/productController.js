@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
-const { getCartCount } = require("../utils/cartHelper");
 
 // ==========================================
 // PRODUCT & CATEGORY CONTROLLER
@@ -20,14 +19,11 @@ const getHomePage = async (req, res) => {
             .populate("category")
             .limit(16);
 
-        // Fetch user's cart count if logged in
-        const cartCount = req.user ? await getCartCount(req.user.userId) : 0;
-
         res.render("home", {
             user: req.user,
             categories,
             products,
-            cartCount,
+            cartCount: 0,
             title: "Blinkit - Groceries in 10 Minutes"
         });
     } catch (error) {
@@ -63,15 +59,13 @@ const getAllProducts = async (req, res) => {
 
         const products = await Product.find(query).populate("category");
         const categories = await Category.find().sort({ name: 1 });
-        const cartCount = req.user ? await getCartCount(req.user.userId) : 0;
-
         res.render("products", {
             user: req.user,
             products,
             categories,
             selectedCategory: category || "",
             searchQuery: search || "",
-            cartCount,
+            cartCount: 0,
             title: "All Products - Blinkit"
         });
     } catch (error) {
@@ -130,15 +124,13 @@ const getProductsByCategory = async (req, res) => {
 
         const category = await Category.findById(categoryId);
         const categories = await Category.find().sort({ name: 1 });
-        const cartCount = req.user ? await getCartCount(req.user.userId) : 0;
-
         res.render("products", {
             user: req.user,
             products,
             categories,
             selectedCategory: categoryId,
             searchQuery: "",
-            cartCount,
+            cartCount: 0,
             title: `${category ? category.name : "Category"} - Blinkit`
         });
     } catch (error) {
@@ -176,13 +168,11 @@ const getProductById = async (req, res) => {
               }).limit(4)
             : [];
 
-        const cartCount = req.user ? await getCartCount(req.user.userId) : 0;
-
         res.render("product-details", {
             user: req.user,
             product,
             relatedProducts,
-            cartCount,
+            cartCount: 0,
             title: `${product.name} - Blinkit`
         });
     } catch (error) {

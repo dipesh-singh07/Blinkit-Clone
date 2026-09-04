@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Order = require("../models/Order");
-const { getCartCount } = require("../utils/cartHelper");
 
 // ==========================================
 // AUTH CONTROLLER
@@ -37,12 +36,11 @@ const getDashboardPage = async (req, res) => {
         const orders = await Order.find({ user: req.user.userId })
             .sort({ createdAt: -1 })
             .limit(5);
-        const cartCount = await getCartCount(req.user.userId);
 
         res.render("dashboard", {
             user,
             orders,
-            cartCount,
+            cartCount: 0,
             title: "My Account - Blinkit"
         });
     } catch (error) {
@@ -59,10 +57,10 @@ const register = async (req, res) => {
         const { name, email, password, role, address } = req.body;
 
         // 1. Validate required fields
-        if (!name || !email || !password) {
+        if (!name || !email || !password || !address || !name.trim() || !email.trim() || !password.trim() || !address.trim()) {
             return res.status(400).json({
                 success: false,
-                message: "Please provide name, email, and password."
+                message: "Please provide all required fields: Full Name, Email Address, Password, and Delivery Address."
             });
         }
 

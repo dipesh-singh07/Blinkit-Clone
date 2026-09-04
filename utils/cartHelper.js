@@ -1,19 +1,9 @@
-const Cart = require("../models/Cart");
-
 // ==========================================
-// CART HELPER UTILITY
+// CART HELPER UTILITY (DEPRECATED FOR LOCAL STORAGE)
 // ==========================================
-// Helper function to get total item count in cart for a given user
+// Cart count is now managed client-side in browser localStorage.
 const getCartCount = async (userId) => {
-    if (!userId) return 0;
-    try {
-        const cart = await Cart.findOne({ user: userId });
-        if (!cart || !cart.items) return 0;
-        return cart.items.reduce((sum, item) => sum + item.quantity, 0);
-    } catch (err) {
-        console.error("Error in getCartCount helper:", err.message);
-        return 0;
-    }
+    return 0;
 };
 
 module.exports = {
