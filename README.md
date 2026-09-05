@@ -37,16 +37,17 @@ This project simulates the core business logic of a quick-commerce app (like Bli
   - Role-based route protection middleware (`customer`, `admin`, `delivery`).
 
 - **Client-Side LocalStorage Shopping Cart:**
-  - Fast, client-side cart management stored in browser `localStorage` (`cart` key).
+  - Fast, client-side cart management stored in browser `localStorage` (`"blinkit_cart"` key).
   - Dynamic quantity stepper controls: `[ ADD ]` converts into `[ − Qty + ]`.
   - Reverts to `[ ADD ]` when quantity reaches 0.
   - Real-time navbar cart counter badge reflecting total item count.
   - Zero database overhead for transient cart operations.
+  - Automatic cart clearing (`localStorage.removeItem("blinkit_cart")`) upon successful checkout or user logout.
 
 - **Order Creation & Price Validation:**
-  - Order snapshot creation (`items`, `address`) upon checkout.
+  - Order snapshot creation (`items`, `address`) upon checkout from `localStorage`.
   - Backend MongoDB validation checks authoritative product availability and pricing from the database to prevent client tampering.
-  - Instant `localStorage` cart clearance after order placement.
+  - Instant `localStorage.removeItem("blinkit_cart")` after order placement.
 
 - **Admin & Delivery Portals:**
   - Admin dashboard with tabs for live orders, products, and categories.
@@ -174,6 +175,13 @@ Blinkit-Clone/
   ```
   *(Or `node server.js`)*
 
+- **Troubleshooting Port Conflicts (`EADDRINUSE`):**
+  If port 3000 is occupied by a background process, run:
+  ```bash
+  kill $(lsof -t -i :3000)
+  ```
+  and re-run `npm run dev`.
+
 - **Open in your browser:**
   ```
   http://localhost:3000
@@ -248,22 +256,85 @@ The seeder creates 3 test accounts with password `password123`:
 
 ## 🛒 LocalStorage Shopping Cart Architecture
 
-To optimize performance and eliminate DB latency for cart updates:
-1. Products are fetched dynamically from the MongoDB backend (`Product.find()`).
-2. When a user clicks **`ADD`** on a product card, the item details (`productId`, `name`, `price`, `image`, `unit`, `quantity`) are saved to browser `localStorage` under the `"cart"` key.
-3. Quantity modifications (**`+`** / **`−`**) update `localStorage` state immediately and refresh the navbar item counter.
-4. Cart contents persist seamlessly across page reloads and browser restarts.
+To optimize performance, eliminate database overhead, and ensure snappy UX for grocery shoppers:
+
+### **1. Cart Architecture & Key**
+- Cart items are stored exclusively in the browser's `localStorage` under the key:
+  ```javascript
+  "blinkit_cart"
+  ```
+- No network requests or database writes are made during regular cart operations (`ADD`, `+`, `−`, Remove, Clear, Page Refresh).
+
+### **2. Storage Data Structure**
+The cart items are serialized via `JSON.stringify()` and deserialized via `JSON.parse()` as an array of objects:
+```json
+[
+  {
+    "productId": "665c71a39f67a213e840a1bc",
+    "name": "Amul Taaza Homogenised Toned Milk",
+    "price": 27,
+    "image": "https://images.unsplash.com/photo-...",
+    "unit": "500 ml",
+    "quantity": 2,
+    "stock": 45
+  }
+]
+```
+
+### **3. Client-Side Lifecycle Flow**
+```
+Product Card / Detail Page (from MongoDB)
+                  │
+                  ▼
+          [ ADD ] Button Clicked
+                  │
+       ┌──────────┴──────────┐
+       ▼                     ▼
+If Guest:             If Logged-in:
+Prompt login toast    Extract product attributes from DOM dataset
+Redirect to /login    Add / Increment item in window.userCart
+                      localStorage.setItem("blinkit_cart", JSON.stringify(cart))
+                      Update navbar badge & stepper controls [ − Qty + ]
+```
+
+### **4. Supported Cart Operations**
+- **Add Product:** `localStorage.setItem()` saves product details and initializes quantity to 1.
+- **Increase Quantity (`+`):** Increments quantity in `window.userCart` up to available stock limit and updates `localStorage`.
+- **Decrease Quantity (`−`):** Decrements quantity in `window.userCart`; if 0, removes the item and reverts card UI to `[ ADD ]`.
+- **Remove Product:** Filters out the item from `window.userCart` and resaves to `localStorage`.
+- **Clear Cart:** Resets cart array and removes `"blinkit_cart"` from `localStorage` using `localStorage.removeItem()`.
+- **Page Reload:** Restores cart state instantly using `localStorage.getItem()` and updates badges and steppers without server latency.
+- **User Logout:** Automatically cleans up `localStorage.removeItem("blinkit_cart")`.
 
 ---
 
 ## 🔒 Order Creation & Security Validation
 
-When a user proceeds to checkout and submits an order:
-1. Client sends the `localStorage` cart items and delivery address to `POST /orders`.
-2. Backend middleware verifies the user's HTTP-only JWT auth cookie (`auth` middleware).
-3. `orderController.js` validates each item against MongoDB (`Product.findById`).
-4. Order prices are calculated server-side from authoritative MongoDB product records to prevent client-side price tampering.
-5. On successful order creation in MongoDB, client `localStorage` cart is cleared and the user is redirected to `/orders`.
+When a user proceeds to checkout and places an order:
+
+```
+localStorage ("blinkit_cart")
+              │
+              ▼
+   POST /orders { address, items }
+              │
+              ├─► 1. Verified by JWT cookie auth middleware
+              ├─► 2. orderController fetches products from MongoDB (Product.findById)
+              ├─► 3. Server overrides prices with authoritative DB prices (anti-tampering)
+              ├─► 4. Validates stock and calculates totalAmount (+ ₹2 handling fee)
+              ├─► 5. Saves Order document in MongoDB
+              └─► 6. Returns HTTP 201 response
+                            │
+                            ▼
+              localStorage.removeItem("blinkit_cart")
+              Redirect to /orders (Order Tracking)
+```
+
+1. **Client Payload:** Client extracts `{ productId, quantity }` from the `blinkit_cart` in `localStorage` and posts to `/orders`.
+2. **Authentication:** Server validates the user's JWT from HTTP-only cookies.
+3. **Price & Stock Integrity:** Prices sent by the client are never trusted. Product prices and availability are verified against authoritative **MongoDB** records.
+4. **Order Storage:** The finalized order is stored permanently in **MongoDB** (`Order` model).
+5. **Cart Cleanup:** Upon receiving `{ success: true }`, client JavaScript removes `"blinkit_cart"` from `localStorage` via `localStorage.removeItem()`.
 
 ---
 

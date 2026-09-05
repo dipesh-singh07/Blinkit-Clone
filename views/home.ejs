@@ -73,7 +73,15 @@
 
                         <div class="product-card-footer">
                             <div class="product-price">₹<%= product.price %></div>
-                            <div class="product-cart-action" data-product-id="<%= product._id %>" data-stock="<%= product.quantity %>">
+                            <div 
+                                class="product-cart-action" 
+                                data-product-id="<%= product._id %>" 
+                                data-stock="<%= product.quantity %>"
+                                data-product-name="<%= product.name %>"
+                                data-product-price="<%= product.price %>"
+                                data-product-image="<%= product.image %>"
+                                data-product-unit="<%= product.unit || '1 unit' %>"
+                            >
                                 <% if (product.isAvailable && product.quantity > 0) { %>
                                     <button class="btn-add" onclick="handleAddToCart('<%= product._id %>')">ADD</button>
                                 <% } else { %>

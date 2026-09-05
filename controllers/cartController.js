@@ -17,16 +17,10 @@ const calculateCartCount = (cart) => {
 // ----------------------------------------------------
 const getCartPage = async (req, res) => {
     try {
-        let cart = null;
-        if (req.user) {
-            cart = await Cart.findOne({ user: req.user.userId }).populate("items.product");
-        }
-        const cartCount = calculateCartCount(cart);
-
         res.render("cart", {
             user: req.user || null,
-            cart: cart || { items: [], totalPrice: 0 },
-            cartCount,
+            cart: { items: [], totalPrice: 0 },
+            cartCount: 0,
             title: "Shopping Cart - Blinkit"
         });
     } catch (error) {
